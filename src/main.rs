@@ -19,8 +19,8 @@ mod melee_combat_system;
 use melee_combat_system::MeleeCombatSystem;
 mod damage_system;
 use damage_system::DamageSystem;
-
-// Start here: https://bfnightly.bracketproductions.com/rustbook/chapter_6.html
+mod gui;
+mod gamelog;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn }
@@ -92,14 +92,17 @@ impl GameState for State {
                 ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
             }
         }
+
+        gui::draw_ui(&self.ecs, ctx);
     }
 }
 
 fn main() -> rltk::BError {
     use rltk::RltkBuilder;
-    let context = RltkBuilder::simple80x50()
+    let mut context = RltkBuilder::simple80x50()
         .with_title("LOD Tutorial")
         .build()?;
+    context.with_post_scanlines(true);
     let mut gs = State{
         ecs: World::new()
     };
@@ -165,6 +168,7 @@ fn main() -> rltk::BError {
     gs.ecs.insert(Point::new(player_x, player_y));
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::PreRun);
+    gs.ecs.insert(gamelog::GameLog{ entries : vec!["Welcome to LOD Roguelike!".to_string()]});
 
     rltk::main_loop(context, gs)
 }
